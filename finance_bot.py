@@ -18,8 +18,7 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 app = Flask(__name__)
 application = ApplicationBuilder().token(BOT_TOKEN).build()
-asyncio.get_event_loop().run_until_complete(application.initialize())
-asyncio.get_event_loop().run_until_complete(application.start())
+
 
 # Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -39,6 +38,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("help", help_command))
+asyncio.get_event_loop().run_until_complete(application.initialize())
+asyncio.get_event_loop().run_until_complete(application.start())
 
 
 # Webhook
