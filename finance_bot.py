@@ -1,5 +1,6 @@
 from flask import Flask, request
 from dotenv import load_dotenv
+import asyncio
 import os
 from telegram import Update, InputFile
 from telegram.ext import (
@@ -17,7 +18,8 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 app = Flask(__name__)
 application = ApplicationBuilder().token(BOT_TOKEN).build()
-
+asyncio.get_event_loop().run_until_complete(application.initialize())
+asyncio.get_event_loop().run_until_complete(application.start())
 
 # Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
