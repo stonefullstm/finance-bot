@@ -1,6 +1,7 @@
 from flask import Flask, request
 from dotenv import load_dotenv
 import os
+import asyncio
 import logging
 from datetime import date
 from utils import (
@@ -22,6 +23,7 @@ CHAT_ID = os.getenv("CHAT_ID")
 
 app = Flask(__name__)
 application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+
 # Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -121,22 +123,35 @@ async def print_last_transactions(
     await update.message.reply_text(mensagem)
 
 application.add_handler(
-        CommandHandler("start", start, filters=authorized_only))
+    CommandHandler("start", start, filters=authorized_only))
 application.add_handler(
-        CommandHandler("help", help_command, filters=authorized_only))
+    CommandHandler("help", help_command, filters=authorized_only))
 application.add_handler(
-        CommandHandler("save", save_command, filters=authorized_only))
+    CommandHandler("save", save_command, filters=authorized_only))
 application.add_handler(
-        CommandHandler(
-            "last", print_last_transactions, filters=authorized_only))
+    CommandHandler(
+       "last", print_last_transactions, filters=authorized_only))
+
+asyncio.get_event_loop().run_until_complete(application.initialize())
+asyncio.get_event_loop().run_until_complete(application.start())
+
+
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
 
 
 # ---- Webhook ----
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    application.update_queue.put(update)
-    return "ok"
+    try:
+        json_data = request.get_json(force=True)
+        update = Update.de_json(json_data, application.bot)
+        asyncio.run(application.process_update(update))  # Executa a corrotina
+        return "ok"
+    except Exception as e:
+        logger.error(f"Erro no webhook: {e}")
+        return "erro", 500
 
 
 if __name__ == "__main__":
