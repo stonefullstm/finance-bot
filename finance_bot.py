@@ -58,6 +58,7 @@ async def help_command(
 
 async def save_command(
         update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # Verifica se o usuário forneceu argumentos
     if not context.args:
         await update.message.reply_text(
             ("Por favor, forneça informações a registrar separadas por /."
@@ -66,13 +67,16 @@ async def save_command(
              )
         )
         return
+    # Obtém os dados fornecidos pelo usuário e separa-os
     dados = context.args[0].split("/")
+    # Verifica se há pelo menos 3 partes (valor, categoria, tipo)
     if len(dados) <= 3:
         await update.message.reply_text(
             ("Formato inválido. Use: valor/categoria/tipo/descrição"
              )
         )
         return
+    # Valida o valor fornecido
     valor = dados[0].replace(",", ".")
     try:
         float(valor)
@@ -84,6 +88,7 @@ async def save_command(
     cliente = conectar_google_sheets()
     planilha = cliente.open("Minhas Finanças Pessoais")
     sheet = planilha.worksheet("Transações")
+    # Adiciona uma nova linha na planilha com os dados fornecidos
     sheet.append_row(
         [
             date.today().strftime("%d/%m/%Y"),
@@ -93,6 +98,7 @@ async def save_command(
             normalizar_string(dados[2]).capitalize(),
         ]
     )
+    # Dá feedback ao usuário
     await update.message.reply_text(
         f"""
         Você registrou: {dados[0]} para {dados[1]}
